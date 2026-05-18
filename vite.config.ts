@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         [randomString]: {
-          target: env.VITE_API_URL,
+          target: env.VITE_BACK_API,
           changeOrigin: true,
           rewrite: (path) => path.replace(randomString, '')
         }
