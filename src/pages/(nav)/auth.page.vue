@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useLogin } from '../hooks/auth'
+import { useLogin } from '../../hooks/auth'
 import { ElForm, ElFormItem, ElInput, ElButton, ElCard } from 'element-plus'
 const router = useRouter()
 
@@ -29,8 +29,13 @@ const rules = {
 }
 async function handleLogin() {
   await mutation.mutateAsync(form)
-  router.push({ name: '/' })
+  router.push({ name: '/(nav)/' })
 }
+definePage({
+  meta: {
+    title: "登录页面",
+  }
+})
 </script>
 
 <style scoped></style>

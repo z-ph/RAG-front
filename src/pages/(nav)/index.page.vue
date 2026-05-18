@@ -6,6 +6,11 @@
 import { useRouter } from 'vue-router';
 const router = useRouter()
 const handleClick = () => {
-    router.push({ name: '/auth' })
+    router.push({ name: '/(nav)/auth' })
 }
+definePage({
+  meta: {
+    title: "首页",
+  }
+})
 </script>
