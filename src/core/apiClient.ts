@@ -11,6 +11,9 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use((response) => {
+  if (response.data.code != 1) {
+    throw new Error(response.data.msg || "Unknown error");
+  }
   return response;
 }, (error) => {
   return Promise.reject(error);
