@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview",
+    "preview": "pnpm run build && wrangler dev",
     "typecheck": "vue-tsc -b",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "deploy": "pnpm run build && wrangler deploy"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm typecheck"
@@ -22,6 +23,7 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.37.2",
     "@types/node": "^24.12.3",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/tsconfig": "^0.9.1",
@@ -30,6 +32,7 @@
     "unplugin-element-plus": "^0.11.2",
     "unplugin-vue-router": "^0.19.2",
     "vite": "^8.0.12",
-    "vue-tsc": "^3.2.8"
+    "vue-tsc": "^3.2.8",
+    "wrangler": "^4.93.0"
   }
 }

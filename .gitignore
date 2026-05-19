@@ -25,3 +25,9 @@ dist-ssr
 .env
 typed-router.d.ts
 .vscode
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
