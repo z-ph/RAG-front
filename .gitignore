@@ -25,3 +25,4 @@ dist-ssr
 .env
 typed-router.d.ts
 .vscode
+.sisyphus/
