@@ -1,9 +1,10 @@
 import axios from "axios";
 import { apiClientConfig } from "./config";
+import { getToken } from "../utils/token";
 const apiClient = axios.create(apiClientConfig);
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = getToken()
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
