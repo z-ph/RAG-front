@@ -7,7 +7,7 @@ import {
   getDocumentHealth,
   batchUploadDocuments 
 } from '../services/documents'
-import type { BatchUploadParams } from '../types/document'
+import type { BatchUploadParams, DocumentsResponse } from '../types/document'
 import { ElMessage } from 'element-plus'
 
 /**
@@ -20,12 +20,12 @@ export function useDocuments(enabled?: Ref<boolean>) {
     queryFn: getDocuments,
     enabled: enabled ?? computed(() => true), // 默认启用，但可以控制
   })
-  
+
   // 文档总数
-  const total = computed(() => query.data.value?.data?.length || 0)
-  
+  const total = computed(() => (query.data.value?.data as DocumentsResponse | undefined)?.total || 0)
+
   return {
-    documents: computed(() => query.data.value?.data || []),
+    documents: computed(() => (query.data.value?.data as DocumentsResponse | undefined)?.documents || []),
     total,
     isLoading: query.isLoading,
     isFetching: query.isFetching,

@@ -5,7 +5,5 @@ export const apiClientConfig = {
     },
 }
 
-// 是否使用Mock数据（开发模式下可切换）
-// 设置为 true 使用Mock数据测试前端功能
-// 设置为 false 使用真实API
-export const USE_MOCK_DATA = true
+// Mock数据开关已移除，所有接口调用均走真实API
+// 如需本地测试，请确保后端服务已启动

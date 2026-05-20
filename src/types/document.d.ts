@@ -13,6 +13,14 @@ export interface Document {
 }
 
 /**
+ * 文档列表响应
+ */
+export interface DocumentsResponse {
+  documents: Document[]
+  total: number
+}
+
+/**
  * 文档健康状态
  */
 export interface DocumentHealth {
