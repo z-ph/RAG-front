@@ -143,6 +143,8 @@ export async function cancelConversation(conversationId: string) {
     `${getBaseURL()}/api/rag/conversations/${conversationId}/cancel`,
     { method: 'POST', headers: { ...getAuthHeaders() } },
   )
+  // 404 表示后端已无进行中任务（SSE 断开时自动取消，或已提前结束），属正常情况
+  if (response.status === 404) return
   if (!response.ok) {
     throw new Error(`取消生成失败: HTTP ${response.status}`)
   }
