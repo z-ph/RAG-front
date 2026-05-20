@@ -25,3 +25,6 @@ dist-ssr
 .env
 typed-router.d.ts
 .vscode
+
+# Sisyphus run continuation files
+.sisyphus/
