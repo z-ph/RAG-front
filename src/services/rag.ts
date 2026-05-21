@@ -1,28 +1,5 @@
 import { getToken } from '../utils/token'
-
-/**
- * 生成唯一会话 ID：浏览器指纹 + 时间戳
- * 指纹基于 navigator、screen 等环境特征，确保同一浏览器生成固定前缀
- */
-export function generateConversationId(): string {
-  const fp = [
-    navigator.userAgent,
-    screen.width,
-    screen.height,
-    navigator.language,
-    navigator.hardwareConcurrency ?? '',
-  ].join('|')
-
-  let hash = 0
-  for (let i = 0; i < fp.length; i++) {
-    hash = ((hash << 5) - hash) + fp.charCodeAt(i)
-    hash |= 0
-  }
-  const fpHash = Math.abs(hash).toString(36).slice(0, 6)
-  const timestamp = Date.now().toString(36)
-
-  return `conv-${fpHash}-${timestamp}`
-}
+import { apiClientConfig } from '../core/config'
 
 export interface Source {
   title: string
@@ -32,7 +9,7 @@ export interface Source {
 
 export interface AskStreamParams {
   question: string
-  conversationId: string
+  conversationId: string | null
   maxResults?: number
 }
 
@@ -59,7 +36,7 @@ export async function askStream(
   handlers: SSEEventHandlers,
   signal?: AbortSignal,
 ) {
-  const response = await fetch(`${getBaseURL()}/api/rag/ask/stream`, {
+  const response = await fetch(`${apiClientConfig.baseURL}/api/rag/ask/stream`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -84,51 +61,59 @@ export async function askStream(
 
   while (true) {
     const { done, value } = await reader.read()
-    if (done) break
 
-    buffer += decoder.decode(value, { stream: true })
+    if (value) {
+      buffer += decoder.decode(value, { stream: true })
 
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
 
-    for (const line of lines) {
-      if (line.startsWith('event: ')) {
-        currentEvent = line.slice(7).trim()
-      } else if (line.startsWith('data: ')) {
-        const dataStr = line.slice(6)
-        try {
-          const data = JSON.parse(dataStr)
-          switch (currentEvent) {
-            case 'start':
-              handlers.onStart(data.conversationId)
-              break
-            case 'delta':
-              handlers.onDelta(data.content ?? '')
-              break
-            case 'sources':
-              handlers.onSources(data.sources ?? [])
-              break
-            case 'complete':
-              handlers.onComplete()
-              break
-            case 'cancelled':
-              handlers.onCancelled()
-              break
-            case 'error':
-              handlers.onError(data.message || 'Unknown error')
-              break
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed) continue
+
+        // 兼容 event:xxx 和 event: xxx 两种格式
+        if (trimmed.startsWith('event:')) {
+          currentEvent = trimmed.slice(6).trim()
+        } else if (trimmed.startsWith('data:')) {
+          const raw = trimmed.slice(5).trim()
+          try {
+            const data = JSON.parse(raw)
+            switch (currentEvent) {
+              case 'start':
+                handlers.onStart(data.conversationId)
+                break
+              case 'delta':
+                handlers.onDelta(data.content ?? data ?? '')
+                break
+              case 'sources':
+                handlers.onSources(Array.isArray(data) ? data : (data.sources ?? []))
+                break
+              case 'complete':
+                handlers.onComplete()
+                break
+              case 'cancelled':
+                handlers.onCancelled()
+                break
+              case 'error':
+                handlers.onError(data.message || 'Unknown error')
+                break
+            }
+          } catch {
+            // data 不是 JSON，作为纯文本内容处理（对应 delta 逐字推送）
+            if (currentEvent === 'delta') {
+              handlers.onDelta(raw)
+            }
           }
-        } catch {
-          // 跳过格式异常的 SSE data 行
         }
       }
     }
-  }
-}
 
-/** 获取 API 基础 URL */
-function getBaseURL(): string {
-  return import.meta.env.DEV ? '/asdfasdf' : (import.meta.env.VITE_BACK_API as string)
+    if (done) break
+  }
+
+  // 流结束时兜底重置状态，处理后端不显式发送 complete 事件的情况
+  handlers.onComplete()
 }
 
 /** 获取认证头 */
@@ -140,7 +125,7 @@ function getAuthHeaders(): Record<string, string> {
 /** 停止 AI 生成 */
 export async function cancelConversation(conversationId: string) {
   const response = await fetch(
-    `${getBaseURL()}/api/rag/conversations/${conversationId}/cancel`,
+    `${apiClientConfig.baseURL}/api/rag/conversations/${conversationId}/cancel`,
     { method: 'POST', headers: { ...getAuthHeaders() } },
   )
   // 404 表示后端已无进行中任务（SSE 断开时自动取消，或已提前结束），属正常情况
@@ -153,7 +138,7 @@ export async function cancelConversation(conversationId: string) {
 /** 删除会话 */
 export async function deleteConversation(conversationId: string) {
   const response = await fetch(
-    `${getBaseURL()}/api/rag/conversations/${conversationId}`,
+    `${apiClientConfig.baseURL}/api/rag/conversations/${conversationId}`,
     { method: 'DELETE', headers: { ...getAuthHeaders() } },
   )
   if (!response.ok) {
@@ -164,7 +149,7 @@ export async function deleteConversation(conversationId: string) {
 /** 获取 RAG 服务健康状态 */
 export async function getHealth(): Promise<HealthStatus> {
   try {
-    const response = await fetch(`${getBaseURL()}/api/rag/health`)
+    const response = await fetch(`${apiClientConfig.baseURL}/api/rag/health`)
     const text = await response.text()
     return { status: text.includes('正常') ? 'ok' : 'error' }
   } catch {

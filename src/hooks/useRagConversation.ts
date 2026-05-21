@@ -4,7 +4,6 @@ import {
   askStream,
   cancelConversation,
   deleteConversation,
-  generateConversationId,
   type Source,
 } from '../services/rag'
 
@@ -22,36 +21,45 @@ export interface ChatMessage {
 
 export function useRagConversation() {
   const messages = ref<ChatMessage[]>([])
-  const conversationId = ref<string | null>(
-    localStorage.getItem(CONVERSATION_KEY),
-  )
+  const conversationId = ref<string | null>(null)
   const isGenerating = ref(false)
   const abortController = ref<AbortController | null>(null)
   let currentAiMessageId: string | null = null
 
-  function ensureConversationId() {
-    if (conversationId.value) return
-
+  function getStoredConversationId(): string | null {
     const storedId = localStorage.getItem(CONVERSATION_KEY)
     const storedTs = localStorage.getItem(CONVERSATION_TS_KEY)
-
-    // 已存且未过期 → 复用
     if (storedId && storedTs) {
       const age = Date.now() - parseInt(storedTs, 10)
       if (age < SESSION_TTL_MS) {
-        conversationId.value = storedId
-        return
+        return storedId
       }
-      // 已过期，清理旧数据
+      // 已过期，清理
       localStorage.removeItem(CONVERSATION_KEY)
       localStorage.removeItem(CONVERSATION_TS_KEY)
     }
+    return null
+  }
 
-    // 未存或已过期 → 生成新 ID
-    const id = generateConversationId()
+  function persistConversationId(id: string) {
     conversationId.value = id
     localStorage.setItem(CONVERSATION_KEY, id)
     localStorage.setItem(CONVERSATION_TS_KEY, String(Date.now()))
+  }
+
+  function finishMessage(errorMessage?: string) {
+    if (currentAiMessageId) {
+      const aiMsg = messages.value.find(m => m.id === currentAiMessageId)
+      if (aiMsg) {
+        aiMsg.isLoading = false
+        if (errorMessage !== undefined) {
+          aiMsg.content = errorMessage
+        }
+      }
+    }
+    isGenerating.value = false
+    abortController.value = null
+    currentAiMessageId = null
   }
 
   function clearConversationId() {
@@ -77,52 +85,42 @@ export function useRagConversation() {
       isLoading: true,
     }
     messages.value.push(aiMessage)
+    // 从响应式数组中取代理对象，后续所有修改都通过它，确保 Vue 检测变化
+    const msg = messages.value[messages.value.length - 1]
     currentAiMessageId = aiMessage.id
 
     isGenerating.value = true
     const controller = new AbortController()
     abortController.value = controller
 
-    // 首次发送时自动生成/复用前端唯一 ID，并检查过期
-    ensureConversationId()
-    // 每次发送都刷新时间戳，活跃会话不会因超时被前端误判过期
-    localStorage.setItem(CONVERSATION_TS_KEY, String(Date.now()))
+    // 从 localStorage 读取未过期的会话 ID，没有则传 null 让后端分配
+    const effectiveId = getStoredConversationId()
 
     try {
       await askStream(
         {
           question,
-          conversationId: conversationId.value!,
+          conversationId: effectiveId,       // 首次为 null，后续为复用 ID
           maxResults: 5,
         },
         {
-          onStart(_id: string) {
-            // 不再保存后端返回的 conversationId，前端自行管理
+          onStart(id: string) {
+            persistConversationId(id)         // 保存后端分配的 ID
           },
           onDelta(content: string) {
-            aiMessage.content += content
+            msg.content += content
           },
           onSources(sources: Source[]) {
-            aiMessage.sources = sources
+            msg.sources = sources
           },
           onComplete() {
-            aiMessage.isLoading = false
-            isGenerating.value = false
-            abortController.value = null
-            currentAiMessageId = null
+            finishMessage()
           },
           onCancelled() {
-            aiMessage.isLoading = false
-            isGenerating.value = false
-            abortController.value = null
-            currentAiMessageId = null
+            finishMessage()
           },
           onError(message: string) {
-            aiMessage.isLoading = false
-            isGenerating.value = false
-            abortController.value = null
-            currentAiMessageId = null
-            aiMessage.content = message || '请求失败'
+            finishMessage(message || '请求失败')
             ElMessage.error(message || '请求失败')
           },
         },
@@ -134,10 +132,7 @@ export function useRagConversation() {
         isGenerating.value = false
         return
       }
-      aiMessage.isLoading = false
-      isGenerating.value = false
-      abortController.value = null
-      aiMessage.content = '网络错误，请重试'
+      finishMessage('网络错误，请重试')
       ElMessage.error('网络错误，请重试')
     }
   }
@@ -146,21 +141,7 @@ export function useRagConversation() {
     const controller = abortController.value
     if (!controller) return
 
-    abortController.value = null
-
-    // 通过响应式数组找到 AI 消息直接修改，确保 Vue 检测到 isLoading 变化
-    if (currentAiMessageId !== null) {
-      const aiMsg = messages.value.find(m => m.id === currentAiMessageId)
-      if (aiMsg) {
-        aiMsg.content = ''
-        aiMsg.isLoading = false
-      }
-      currentAiMessageId = null
-    }
-
-    // 立即重置生成状态，不依赖 askStream 异常传递
-    isGenerating.value = false
-
+    finishMessage()
     controller.abort()
 
     // 通知服务端停止生成（尽最大努力，不阻塞）
@@ -177,10 +158,8 @@ export function useRagConversation() {
         // 删除失败时仍清空本地状态
       }
     }
+    finishMessage()
     messages.value = []
-    currentAiMessageId = null
-    isGenerating.value = false
-    abortController.value = null
     clearConversationId()
   }
 
