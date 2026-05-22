@@ -25,10 +25,18 @@ export function generateConversationId(): string {
   return `conv-${fpHash}-${timestamp}`
 }
 
+/** 来源信息（适配后端返回格式） */
 export interface Source {
+  /** 后端返回的文件名 */
+  filename: string
+  /** 显示标题，优先取 excerpt 中解析的标题，否则用 filename */
   title: string
+  /** 链接（后端可能不返回） */
   url?: string
+  /** 摘要内容 */
   content?: string
+  /** 相关度分数 */
+  relevanceScore?: number
 }
 
 export interface AskStreamParams {
@@ -110,8 +118,37 @@ export async function askStream(
               case 'delta':
                 handlers.onDelta(data.content ?? data ?? '')
                 break
-              case 'sources':
-                handlers.onSources(Array.isArray(data) ? data : (data.sources ?? []))
+              case 'sources': {
+                const rawSources: unknown[] = Array.isArray(data) ? data : (data.sources ?? [])
+                const mapped = rawSources.map((s: unknown): Source => {
+                  const item = s as Record<string, unknown>
+                  const excerpt = String(item.excerpt ?? '')
+
+                  // 从 excerpt 中提取【段落关键词：xxx】作为更具体的描述
+                  const keywordsMatch = excerpt.match(/【段落关键词：(.+?)】/)
+                  // 从 excerpt 中提取【标题：xxx】作为文档标题
+                  const titleMatch = excerpt.match(/【标题：(.+?)】/)
+
+                  const filename = String(item.filename ?? '')
+                  const keywords = keywordsMatch?.[1]
+                  const docTitle = titleMatch?.[1]
+
+                  // 优先用关键词（更具体），其次用文档标题，最后用文件名
+                  const displayTitle = keywords
+                    ? `${filename} — ${keywords}`
+                    : (docTitle ?? filename) || '未知来源'
+
+                  return {
+                    filename,
+                    title: displayTitle,
+                    url: item.url as string | undefined,
+                    content: excerpt,
+                    relevanceScore: item.relevanceScore as number | undefined,
+                  }
+                })
+                handlers.onSources(mapped)
+                break
+              }
                 break
               case 'complete':
                 handlers.onComplete()
