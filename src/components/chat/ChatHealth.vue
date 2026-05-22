@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { getHealth } from '../../services/rag'
 
 const status = ref<'online' | 'offline' | 'checking'>('checking')
-const statusText: Record<string, string> = {
+const statusText = {
   online: '服务正常',
   offline: '服务离线',
   checking: '检查中...',

@@ -17,7 +17,6 @@ function scrollToBottom() {
   })
 }
 
-// 消息列表变化或最后一条消息流式更新时自动滚到底部
 watch(
   () => {
     const last = props.messages[props.messages.length - 1]

@@ -1,0 +1,185 @@
+﻿diff --git a/src/hooks/useRagConversation.ts b/src/hooks/useRagConversation.ts
+new file mode 100644
+index 0000000..32118d5
+--- /dev/null
++++ b/src/hooks/useRagConversation.ts
+@@ -0,0 +1,184 @@
++import { ref } from 'vue'
++import { ElMessage } from 'element-plus'
++import {
++  askStream,
++  cancelConversation,
++  deleteConversation,
++  generateConversationId,
++  type Source,
++} from '../services/rag'
++
++const CONVERSATION_KEY = 'rag-conversation-id'
++const CONVERSATION_TS_KEY = 'rag-conversation-ts'
++const SESSION_TTL_MS = 30 * 60 * 1000 // 30 鍒嗛挓锛屽榻愬悗绔?rag.session-ttl-seconds:1800
++
++export interface ChatMessage {
++  id: string
++  role: 'user' | 'assistant'
++  content: string
++  sources?: Source[]
++  isLoading?: boolean
++}
++
++export function useRagConversation() {
++  const messages = ref<ChatMessage[]>([])
++  const conversationId = ref<string | null>(
++    localStorage.getItem(CONVERSATION_KEY),
++  )
++  const isGenerating = ref(false)
++  const abortController = ref<AbortController | null>(null)
++  let currentAiMessageId: string | null = null
++
++  /** 纭繚鎷ユ湁鏈夋晥鐨勪細璇?ID锛氭湭杩囨湡鍒欏鐢紝鍚﹀垯鐢熸垚鏂?ID */
++  function ensureConversationId() {
++    if (conversationId.value) return
++
++    const storedId = localStorage.getItem(CONVERSATION_KEY)
++    const storedTs = localStorage.getItem(CONVERSATION_TS_KEY)
++
++    // 宸插瓨涓旀湭杩囨湡 鈫?澶嶇敤
++    if (storedId && storedTs) {
++      const age = Date.now() - parseInt(storedTs, 10)
++      if (age < SESSION_TTL_MS) {
++        conversationId.value = storedId
++        return
++      }
++      // 宸茶繃鏈燂紝娓呯悊鏃ф暟鎹?+      localStorage.removeItem(CONVERSATION_KEY)
++      localStorage.removeItem(CONVERSATION_TS_KEY)
++    }
++
++    // 鏈瓨鎴栧凡杩囨湡 鈫?鐢熸垚鏂?ID
++    const id = generateConversationId()
++    conversationId.value = id
++    localStorage.setItem(CONVERSATION_KEY, id)
++    localStorage.setItem(CONVERSATION_TS_KEY, String(Date.now()))
++  }
++
++  function finishMessage(errorMessage?: string) {
++    if (currentAiMessageId) {
++      const aiMsg = messages.value.find(m => m.id === currentAiMessageId)
++      if (aiMsg) {
++        aiMsg.isLoading = false
++        if (errorMessage !== undefined) {
++          aiMsg.content = errorMessage
++        }
++      }
++    }
++    isGenerating.value = false
++    abortController.value = null
++    currentAiMessageId = null
++  }
++
++  function clearConversationId() {
++    conversationId.value = null
++    localStorage.removeItem(CONVERSATION_KEY)
++    localStorage.removeItem(CONVERSATION_TS_KEY)
++  }
++
++  async function sendMessage(question: string) {
++    if (!question.trim() || isGenerating.value) return
++
++    const userMessage: ChatMessage = {
++      id: `user-${Date.now()}`,
++      role: 'user',
++      content: question,
++    }
++    messages.value.push(userMessage)
++
++    const aiMessage: ChatMessage = {
++      id: `assistant-${Date.now()}`,
++      role: 'assistant',
++      content: '',
++      isLoading: true,
++    }
++    messages.value.push(aiMessage)
++    // 浠庡搷搴斿紡鏁扮粍涓彇浠ｇ悊瀵硅薄锛屽悗缁墍鏈変慨鏀归兘閫氳繃瀹冿紝纭繚 Vue 妫€娴嬪彉鍖?+    const msg = messages.value[messages.value.length - 1]
++    currentAiMessageId = aiMessage.id
++
++    isGenerating.value = true
++    const controller = new AbortController()
++    abortController.value = controller
++
++    // 棣栨鍙戦€佹椂鑷姩鐢熸垚/澶嶇敤鍓嶇鍞竴 ID锛屽苟妫€鏌ヨ繃鏈?+    ensureConversationId()
++    // 姣忔鍙戦€侀兘鍒锋柊鏃堕棿鎴筹紝娲昏穬浼氳瘽涓嶄細鍥犺秴鏃惰鍓嶇璇垽杩囨湡
++    localStorage.setItem(CONVERSATION_TS_KEY, String(Date.now()))
++
++    try {
++      await askStream(
++        {
++          question,
++          conversationId: conversationId.value!,
++          maxResults: 5,
++        },
++        {
++          onStart(_id: string) {
++            // 涓嶅啀淇濆瓨鍚庣杩斿洖鐨?conversationId锛屽墠绔嚜琛岀鐞?+          },
++          onDelta(content: string) {
++            msg.content += content
++          },
++          onSources(sources: Source[]) {
++            msg.sources = sources
++          },
++          onComplete() {
++            finishMessage()
++          },
++          onCancelled() {
++            finishMessage()
++          },
++          onError(message: string) {
++            finishMessage(message || '璇锋眰澶辫触')
++            ElMessage.error(message || '璇锋眰澶辫触')
++          },
++        },
++        controller.signal,
++      )
++    } catch (err: unknown) {
++      // 濡傛灉 currentAiMessageId 宸茶 stopGeneration 娓呮帀锛岃鏄庢槸涓诲姩鍋滄
++      if (currentAiMessageId === null) {
++        isGenerating.value = false
++        return
++      }
++      finishMessage('缃戠粶閿欒锛岃閲嶈瘯')
++      ElMessage.error('缃戠粶閿欒锛岃閲嶈瘯')
++    }
++  }
++
++  async function stopGeneration() {
++    const controller = abortController.value
++    if (!controller) return
++
++    finishMessage()
++    controller.abort()
++
++    // 閫氱煡鏈嶅姟绔仠姝㈢敓鎴愶紙灏芥渶澶у姫鍔涳紝涓嶉樆濉烇級
++    if (conversationId.value) {
++      cancelConversation(conversationId.value).catch(() => {})
++    }
++  }
++
++  async function clearConversation() {
++    if (conversationId.value) {
++      try {
++        await deleteConversation(conversationId.value)
++      } catch {
++        // 鍒犻櫎澶辫触鏃朵粛娓呯┖鏈湴鐘舵€?+      }
++    }
++    finishMessage()
++    messages.value = []
++    clearConversationId()
++  }
++
++  return {
++    messages,
++    conversationId,
++    isGenerating,
++    sendMessage,
++    stopGeneration,
++    clearConversation,
++  }
++}

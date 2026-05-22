@@ -27,15 +27,11 @@ export function generateConversationId(): string {
 
 /** 来源信息（适配后端返回格式） */
 export interface Source {
-  /** 后端返回的文件名 */
   filename: string
   /** 显示标题，优先取 excerpt 中解析的标题，否则用 filename */
   title: string
-  /** 链接（后端可能不返回） */
   url?: string
-  /** 摘要内容 */
   content?: string
-  /** 相关度分数 */
   relevanceScore?: number
 }
 
@@ -120,7 +116,7 @@ export async function askStream(
                 break
               case 'sources': {
                 const rawSources: unknown[] = Array.isArray(data) ? data : (data.sources ?? [])
-                const mapped = rawSources.map((s: unknown): Source => {
+                const mapped = rawSources.map((s: unknown) => {
                   const item = s as Record<string, unknown>
                   const excerpt = String(item.excerpt ?? '')
 
@@ -149,7 +145,6 @@ export async function askStream(
                 handlers.onSources(mapped)
                 break
               }
-                break
               case 'complete':
                 handlers.onComplete()
                 break
@@ -177,13 +172,11 @@ export async function askStream(
   handlers.onComplete()
 }
 
-/** 获取认证头 */
 function getAuthHeaders(): Record<string, string> {
   const token = getToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-/** 停止 AI 生成 */
 export async function cancelConversation(conversationId: string) {
   const response = await fetch(
     `${apiClientConfig.baseURL}/api/rag/conversations/${conversationId}/cancel`,
@@ -196,7 +189,6 @@ export async function cancelConversation(conversationId: string) {
   }
 }
 
-/** 删除会话 */
 export async function deleteConversation(conversationId: string) {
   const response = await fetch(
     `${apiClientConfig.baseURL}/api/rag/conversations/${conversationId}`,
@@ -207,8 +199,7 @@ export async function deleteConversation(conversationId: string) {
   }
 }
 
-/** 获取 RAG 服务健康状态 */
-export async function getHealth(): Promise<HealthStatus> {
+export async function getHealth() {
   try {
     const response = await fetch(`${apiClientConfig.baseURL}/api/rag/health`)
     const text = await response.text()

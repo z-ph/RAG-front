@@ -29,26 +29,22 @@ export function useRagConversation() {
   const abortController = ref<AbortController | null>(null)
   let currentAiMessageId: string | null = null
 
-  /** 确保拥有有效的会话 ID：未过期则复用，否则生成新 ID */
   function ensureConversationId() {
     if (conversationId.value) return
 
     const storedId = localStorage.getItem(CONVERSATION_KEY)
-    const storedTs = localStorage.getItem(CONVERSATION_TS_KEY)
+const storedTs = localStorage.getItem(CONVERSATION_TS_KEY)
 
-    // 已存且未过期 → 复用
     if (storedId && storedTs) {
       const age = Date.now() - parseInt(storedTs, 10)
       if (age < SESSION_TTL_MS) {
         conversationId.value = storedId
         return
       }
-      // 已过期，清理旧数据
       localStorage.removeItem(CONVERSATION_KEY)
       localStorage.removeItem(CONVERSATION_TS_KEY)
     }
 
-    // 未存或已过期 → 生成新 ID
     const id = generateConversationId()
     conversationId.value = id
     localStorage.setItem(CONVERSATION_KEY, id)
@@ -101,7 +97,6 @@ export function useRagConversation() {
     const controller = new AbortController()
     abortController.value = controller
 
-    // 首次发送时自动生成/复用前端唯一 ID，并检查过期
     ensureConversationId()
     // 每次发送都刷新时间戳，活跃会话不会因超时被前端误判过期
     localStorage.setItem(CONVERSATION_TS_KEY, String(Date.now()))

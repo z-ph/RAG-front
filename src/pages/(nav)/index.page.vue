@@ -22,7 +22,7 @@ const { messages, isGenerating, sendMessage, stopGeneration, clearConversation }
     <ChatMessages :messages="messages" />
     <ChatInput
       :is-generating="isGenerating"
-      @send="(text: string) => sendMessage(text)"
+      @send="sendMessage"
       @stop="stopGeneration"
       @clear="clearConversation"
     />
