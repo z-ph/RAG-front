@@ -1,6 +1,30 @@
 import { getToken } from '../utils/token'
 import { apiClientConfig } from '../core/config'
 
+/**
+ * 生成唯一会话 ID：浏览器指纹 + 时间戳
+ * 指纹基于 navigator、screen 等环境特征，确保同一浏览器生成固定前缀
+ */
+export function generateConversationId(): string {
+  const fp = [
+    navigator.userAgent,
+    screen.width,
+    screen.height,
+    navigator.language,
+    navigator.hardwareConcurrency ?? '',
+  ].join('|')
+
+  let hash = 0
+  for (let i = 0; i < fp.length; i++) {
+    hash = ((hash << 5) - hash) + fp.charCodeAt(i)
+    hash |= 0
+  }
+  const fpHash = Math.abs(hash).toString(36).slice(0, 6)
+  const timestamp = Date.now().toString(36)
+
+  return `conv-${fpHash}-${timestamp}`
+}
+
 export interface Source {
   title: string
   url?: string
@@ -9,7 +33,7 @@ export interface Source {
 
 export interface AskStreamParams {
   question: string
-  conversationId: string | null
+  conversationId: string
   maxResults?: number
 }
 

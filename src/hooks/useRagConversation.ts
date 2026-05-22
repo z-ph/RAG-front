@@ -4,6 +4,7 @@ import {
   askStream,
   cancelConversation,
   deleteConversation,
+  generateConversationId,
   type Source,
 } from '../services/rag'
 
@@ -21,27 +22,34 @@ export interface ChatMessage {
 
 export function useRagConversation() {
   const messages = ref<ChatMessage[]>([])
-  const conversationId = ref<string | null>(null)
+  const conversationId = ref<string | null>(
+    localStorage.getItem(CONVERSATION_KEY),
+  )
   const isGenerating = ref(false)
   const abortController = ref<AbortController | null>(null)
   let currentAiMessageId: string | null = null
 
-  function getStoredConversationId(): string | null {
+  /** 确保拥有有效的会话 ID：未过期则复用，否则生成新 ID */
+  function ensureConversationId() {
+    if (conversationId.value) return
+
     const storedId = localStorage.getItem(CONVERSATION_KEY)
     const storedTs = localStorage.getItem(CONVERSATION_TS_KEY)
+
+    // 已存且未过期 → 复用
     if (storedId && storedTs) {
       const age = Date.now() - parseInt(storedTs, 10)
       if (age < SESSION_TTL_MS) {
-        return storedId
+        conversationId.value = storedId
+        return
       }
-      // 已过期，清理
+      // 已过期，清理旧数据
       localStorage.removeItem(CONVERSATION_KEY)
       localStorage.removeItem(CONVERSATION_TS_KEY)
     }
-    return null
-  }
 
-  function persistConversationId(id: string) {
+    // 未存或已过期 → 生成新 ID
+    const id = generateConversationId()
     conversationId.value = id
     localStorage.setItem(CONVERSATION_KEY, id)
     localStorage.setItem(CONVERSATION_TS_KEY, String(Date.now()))
@@ -93,19 +101,21 @@ export function useRagConversation() {
     const controller = new AbortController()
     abortController.value = controller
 
-    // 从 localStorage 读取未过期的会话 ID，没有则传 null 让后端分配
-    const effectiveId = getStoredConversationId()
+    // 首次发送时自动生成/复用前端唯一 ID，并检查过期
+    ensureConversationId()
+    // 每次发送都刷新时间戳，活跃会话不会因超时被前端误判过期
+    localStorage.setItem(CONVERSATION_TS_KEY, String(Date.now()))
 
     try {
       await askStream(
         {
           question,
-          conversationId: effectiveId,       // 首次为 null，后续为复用 ID
+          conversationId: conversationId.value!,
           maxResults: 5,
         },
         {
-          onStart(id: string) {
-            persistConversationId(id)         // 保存后端分配的 ID
+          onStart(_id: string) {
+            // 不再保存后端返回的 conversationId，前端自行管理
           },
           onDelta(content: string) {
             msg.content += content
