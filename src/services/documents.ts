@@ -68,7 +68,12 @@ export async function batchUploadDocuments(params: BatchUploadParams): Promise<R
   console.log('Response Data (原始):', response.data)
   console.log('=====================================')
 
-  return response.data
+  // 后端返回 data 为 taskId 字符串，包装成 Result<{ taskId: string }> 格式
+  return {
+    code: response.data.code ?? 1,
+    data: { taskId: response.data.data },
+    msg: response.data.msg || 'success'
+  }
 }
 
 /**
