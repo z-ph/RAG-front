@@ -27,3 +27,5 @@ typed-router.d.ts
 .vscode
 
 tasks/person-b-task-record.md
+
+.sisyphus/
