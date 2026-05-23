@@ -8,14 +8,6 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
-  // 打印实际发出的请求配置，用于调试
-  console.log('=== Request Interceptor 发出的请求 ===')
-  console.log('URL:', config.url)
-  console.log('BaseURL:', config.baseURL)
-  console.log('Method:', config.method)
-  console.log('Headers:', config.headers)
-  console.log('Data (Request Body):', config.data)
-  console.log('======================================')
   return config;
 });
 

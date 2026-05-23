@@ -37,10 +37,16 @@ export type BatchUploadTaskStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FA
  * 批量上传任务结果项
  */
 export interface BatchUploadResult {
-  filename: string
+  originalFilename: string
   success: boolean
   documentId?: string
   errorMessage?: string
+  filePath?: string | null
+  message?: string | null
+  metadata?: any
+  savedEntityId?: string | null
+  textContent?: string | null
+  embeddingCount?: number
 }
 
 /**

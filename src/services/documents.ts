@@ -32,6 +32,13 @@ export async function uploadDocument(file: File): Promise<Result<Document>> {
   console.log('Response Data (原始):', response.data)
   console.log('=====================================')
 
+  // 后端返回错误格式 {error, message} 时，识别为上传失败
+  if (response.data && response.data.error) {
+    const errorMsg = response.data.error
+    console.error('单文件上传失败:', errorMsg, response.data.message)
+    throw new Error(errorMsg)
+  }
+
   return response.data
 }
 

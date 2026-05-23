@@ -47,8 +47,25 @@ export function useUploadDocument() {
       // 刷新文档列表
       queryClient.invalidateQueries({ queryKey: ['documents'] })
     },
-    onError: (error: Error) => {
-      ElMessage.error(error.message || '上传失败')
+    onError: (error: any) => {
+      // 解析后端返回的 HTTP 错误响应
+      let errorMsg = '上传失败'
+      
+      // Axios HTTP 错误（如 400/500）
+      if (error.response?.data) {
+        const data = error.response.data
+        if (data.error) {
+          errorMsg = data.error
+        } else if (data.message) {
+          errorMsg = data.message
+        } else if (typeof data === 'string') {
+          errorMsg = data
+        }
+      } else if (error.message) {
+        errorMsg = error.message
+      }
+      
+      ElMessage.error(errorMsg)
     },
   })
   
@@ -69,8 +86,24 @@ export function useBatchUpload() {
 onSuccess: (result) => {
       ElMessage.success(`批量上传任务已创建，任务ID: ${result.data.taskId}`)
     },
-    onError: (error: Error) => {
-      ElMessage.error(error.message || '批量上传失败')
+    onError: (error: any) => {
+      // 解析后端返回的 HTTP 错误响应
+      let errorMsg = '批量上传失败'
+      
+      if (error.response?.data) {
+        const data = error.response.data
+        if (data.error) {
+          errorMsg = data.error
+        } else if (data.message) {
+          errorMsg = data.message
+        } else if (typeof data === 'string') {
+          errorMsg = data
+        }
+      } else if (error.message) {
+        errorMsg = error.message
+      }
+      
+      ElMessage.error(errorMsg)
     },
   })
   
@@ -96,8 +129,24 @@ export function useDeleteDocument() {
       // 刷新文档列表
       queryClient.invalidateQueries({ queryKey: ['documents'] })
     },
-    onError: (error: Error) => {
-      ElMessage.error(error.message || '删除失败')
+    onError: (error: any) => {
+      // 解析后端返回的 HTTP 错误响应
+      let errorMsg = '删除失败'
+      
+      if (error.response?.data) {
+        const data = error.response.data
+        if (data.error) {
+          errorMsg = data.error
+        } else if (data.message) {
+          errorMsg = data.message
+        } else if (typeof data === 'string') {
+          errorMsg = data
+        }
+      } else if (error.message) {
+        errorMsg = error.message
+      }
+      
+      ElMessage.error(errorMsg)
     },
   })
   
