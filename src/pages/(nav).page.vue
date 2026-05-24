@@ -22,8 +22,6 @@ import { House, Document, User } from '@element-plus/icons-vue';
     </footer>
 </template>
 <style scoped>
-
-
 header {
     justify-self: flex-start;
     flex-grow: 0;
@@ -35,9 +33,13 @@ footer {
     display: flex;
     justify-content: space-around;
 }
+
 main {
     flex-grow: 1;
+    overflow-x: hidden;
+    width: 100%;
 }
+
 .pointer {
     cursor: pointer;
 }
