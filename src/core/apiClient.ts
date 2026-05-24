@@ -12,9 +12,13 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use((response) => {
-  if (response.data.code != 1) {
-    throw new Error(response.data.msg || "Unknown error");
+  // 如果后端返回了标准 Result 格式（包含 code 字段），则进行状态码校验
+  if (response.data && typeof response.data.code !== 'undefined') {
+    if (response.data.code != 1) {
+      throw new Error(response.data.msg || "Unknown error");
+    }
   }
+  // 如果没有 code 字段（后端直接返回数据），直接放行
   return response;
 }, (error) => {
   return Promise.reject(error);

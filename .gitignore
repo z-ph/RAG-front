@@ -26,6 +26,8 @@ dist-ssr
 typed-router.d.ts
 .vscode
 
+# Sisyphus run continuation files
+.sisyphus/
 tasks/person-b-task-record.md
 
 .sisyphus/
