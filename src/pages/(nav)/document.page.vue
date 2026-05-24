@@ -10,28 +10,26 @@
     </el-card>
 
     <!-- 登录后的文档管理界面 -->
-    <div v-else class="document-content">
+    <div v-else class="flex flex-col gap-5">
       <!-- 健康状态 -->
-      <el-card class="health-card">
-        <div class="health-status">
-          <span class="health-label">服务状态</span>
-          <div class="health-tag-container">
-            <transition name="fade" mode="out-in">
-              <div v-if="!health" key="loading" class="health-loading">
-                <el-icon class="loading-icon" :size="14"><Loading /></el-icon>
-                <span class="loading-text">检测中...</span>
-              </div>
-              <el-tag :type="healthTagType" v-else key="result" size="default" effect="light">
-                {{ health.status === 'healthy' ? '正常' : '异常' }}
-              </el-tag>
-            </transition>
-          </div>
+      <el-card>
+        <div class="flex items-center gap-3 min-h-8">
+          <span class="text-sm">服务状态</span>
+          <transition name="fade" mode="out-in">
+            <div v-if="!health" key="loading" class="flex items-center gap-1.5 text-gray text-sm">
+              <el-icon class="loading-icon" :size="14"><Loading /></el-icon>
+              <span>检测中...</span>
+            </div>
+            <el-tag :type="healthTagType" v-else key="result" size="default" effect="light">
+              {{ health.status === 'healthy' ? '正常' : '异常' }}
+            </el-tag>
+          </transition>
         </div>
       </el-card>
 
       <!-- 上传区域 -->
-      <el-card class="upload-card">
-        <div class="upload-section">
+      <el-card>
+        <div class="flex flex-wrap gap-5">
           <!-- 单文件上传 -->
           <div class="single-upload">
             <el-upload
@@ -85,35 +83,35 @@
                 style="display: none"
                 @change="handleFileSelect"
               />
-              <div class="dropzone-content">
+              <div class="flex flex-col items-center gap-2 text-gray">
                 <el-icon :size="40"><Upload /></el-icon>
-                <p class="dropzone-title">点击或拖拽文件到此处上传</p>
-                <p class="dropzone-hint">支持 PDF、DOC、DOCX、TXT、MD 格式</p>
+                <p class="text-base font-medium m-0">点击或拖拽文件到此处上传</p>
+                <p class="text-sm m-0">支持 PDF、DOC、DOCX、TXT、MD 格式</p>
               </div>
             </div>
 
             <!-- 待上传文件列表 -->
-            <div v-if="pendingFiles.length > 0" class="pending-file-list">
-              <div class="file-list-header">
-                <span class="file-list-title">
+            <div v-if="pendingFiles.length > 0" class="mt-4">
+              <div class="flex justify-between items-center mb-3 px-1">
+                <span class="text-sm font-medium">
                   待上传文件 ({{ validFileCount }}/{{ pendingFiles.length }})
                 </span>
-                <span v-if="invalidFileCount > 0" class="invalid-hint">
+                <span v-if="invalidFileCount > 0" class="text-sm text-danger">
                   {{ invalidFileCount }} 个文件格式不支持
                 </span>
               </div>
 
-              <div class="file-items">
+              <div class="flex flex-col gap-2">
                 <div
                   v-for="(fileItem, index) in pendingFiles"
                   :key="`${fileItem.name}-${index}`"
                   class="file-item"
                   :class="{ 'file-invalid': !fileItem.isValid }"
                 >
-                  <div class="file-main">
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
                     <el-icon :size="18"><Document /></el-icon>
-                    <span class="file-name" :title="fileItem.name">{{ fileItem.name }}</span>
-                    <span class="file-size">{{ formatFileSize(fileItem.size) }}</span>
+                    <span class="text-sm truncate flex-1" :title="fileItem.name">{{ fileItem.name }}</span>
+                    <span class="text-xs text-gray whitespace-nowrap">{{ formatFileSize(fileItem.size) }}</span>
                     <el-tag v-if="!fileItem.isValid" type="danger" size="small" effect="plain">
                       {{ fileItem.error }}
                     </el-tag>
@@ -141,22 +139,26 @@
               </div>
 
               <!-- 操作按钮 -->
-              <div class="file-actions">
-                <el-button size="default" @click="clearAllPendingFiles">
-                  <el-icon><Delete /></el-icon>
-                  全部清空
-                </el-button>
-                <el-button
-                  type="primary"
-                  size="default"
-                  :loading="isBatchUploading"
-                  :disabled="validFileCount === 0"
-                  @click="uploadAllFiles"
-                >
-                  <el-icon><Upload /></el-icon>
-                  全部上传 ({{ validFileCount }}个)
-                </el-button>
-              </div>
+              <el-row justify="end" class="mt-4 pt-4" style="border-top: 1px solid var(--el-border-color-lighter)">
+                <el-col>
+                  <el-space>
+                    <el-button size="default" @click="clearAllPendingFiles">
+                      <el-icon><Delete /></el-icon>
+                      全部清空
+                    </el-button>
+                    <el-button
+                      type="primary"
+                      size="default"
+                      :loading="isBatchUploading"
+                      :disabled="validFileCount === 0"
+                      @click="uploadAllFiles"
+                    >
+                      <el-icon><Upload /></el-icon>
+                      全部上传 ({{ validFileCount }}个)
+                    </el-button>
+                  </el-space>
+                </el-col>
+              </el-row>
             </div>
           </div>
 
@@ -176,37 +178,49 @@
             />
 
             <!-- 实时处理统计 -->
-            <div class="task-stats-bar">
-              <div class="task-stat-item">
-                <span class="stat-label">成功</span>
-                <span class="stat-value success-text">{{ currentTask?.successCount || 0 }}</span>
-              </div>
-              <div class="task-stat-item">
-                <span class="stat-label">失败</span>
-                <span class="stat-value error-text">{{ currentTask?.failureCount || 0 }}</span>
-              </div>
-              <div class="task-stat-item">
-                <span class="stat-label">总数</span>
-                <span class="stat-value">{{ currentTask?.totalFiles || 0 }}</span>
-              </div>
-            </div>
+            <el-row justify="center" :gutter="40" class="mt-4">
+              <el-col :span="8" class="text-center">
+                <div class="el-statistic">
+                  <div class="el-statistic__content text-success text-xl font-bold">
+                    {{ currentTask?.successCount || 0 }}
+                  </div>
+                  <div class="el-statistic__title text-sm text-gray">成功</div>
+                </div>
+              </el-col>
+              <el-col :span="8" class="text-center">
+                <div class="el-statistic">
+                  <div class="el-statistic__content text-danger text-xl font-bold">
+                    {{ currentTask?.failureCount || 0 }}
+                  </div>
+                  <div class="el-statistic__title text-sm text-gray">失败</div>
+                </div>
+              </el-col>
+              <el-col :span="8" class="text-center">
+                <div class="el-statistic">
+                  <div class="el-statistic__content text-xl font-bold">
+                    {{ currentTask?.totalFiles || 0 }}
+                  </div>
+                  <div class="el-statistic__title text-sm text-gray">总数</div>
+                </div>
+              </el-col>
+            </el-row>
 
             <!-- 实时文件处理列表 -->
-            <div v-if="currentTask?.results && currentTask.results.length > 0" class="realtime-results">
-              <div class="realtime-results-header">
+            <el-card v-if="currentTask?.results && currentTask.results.length > 0" class="mt-5" shadow="never">
+              <template #header>
                 <span>文件处理状态 ({{ currentTask.results.length }}/{{ currentTask.totalFiles }})</span>
-              </div>
+              </template>
               <div class="realtime-results-list">
                 <div
                   v-for="result in currentTask.results"
                   :key="result.originalFilename"
-                  class="realtime-result-item"
-                  :class="{ 'result-success': result.success, 'result-failed': !result.success }"
+                  class="flex justify-between items-center p-2 rounded mb-1"
+                  :class="result.success ? 'result-success' : 'result-failed'"
                 >
-                  <div class="result-file-info">
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
                     <el-icon v-if="result.success" color="#67c23a"><CircleCheckFilled /></el-icon>
                     <el-icon v-else color="#f56c6c"><CircleCloseFilled /></el-icon>
-                    <span class="result-file-name" :title="result.originalFilename">
+                    <span class="text-sm truncate flex-1" :title="result.originalFilename">
                       {{ result.originalFilename }}
                     </span>
                   </div>
@@ -219,9 +233,9 @@
                   </el-tag>
                 </div>
               </div>
-            </div>
+            </el-card>
 
-            <div class="task-progress-actions">
+            <div class="text-center mt-5">
               <el-button @click="stopPolling" type="warning" size="small">
                 停止轮询
               </el-button>
@@ -245,40 +259,54 @@
             </div>
 
             <!-- 成功文件列表 -->
-            <div v-if="currentTask?.results?.some((r: any) => r.success)" class="success-files-section">
-              <div class="section-header success-section-header">
-                <el-icon color="#67c23a"><CircleCheckFilled /></el-icon>
-                <span>成功文件 ({{ currentTask?.successCount || 0 }})</span>
-              </div>
+            <el-card
+              v-if="currentTask?.results?.some((r: any) => r.success)"
+              class="mt-4"
+              shadow="never"
+              :body-style="{ padding: '8px', backgroundColor: 'var(--el-color-success-light-9)' }"
+            >
+              <template #header>
+                <div class="flex items-center gap-2 text-success">
+                  <el-icon color="#67c23a"><CircleCheckFilled /></el-icon>
+                  <span>成功文件 ({{ currentTask?.successCount || 0 }})</span>
+                </div>
+              </template>
               <div class="result-file-list">
                 <div
                   v-for="result in currentTask.results.filter((r: any) => r.success)"
                   :key="result.originalFilename"
-                  class="result-file-item result-file-success"
+                  class="flex items-center gap-2 p-1 rounded mb-1 result-file-success"
                 >
                   <el-icon color="#67c23a" :size="16"><CircleCheckFilled /></el-icon>
-                  <span class="result-file-name" :title="result.originalFilename">
+                  <span class="text-sm truncate flex-1" :title="result.originalFilename">
                     {{ result.originalFilename }}
                   </span>
                 </div>
               </div>
-            </div>
+            </el-card>
 
             <!-- 失败文件列表 -->
-            <div v-if="currentTask?.results?.some((r: any) => !r.success)" class="failed-files-section">
-              <div class="section-header failed-section-header">
-                <el-icon color="#f56c6c"><CircleCloseFilled /></el-icon>
-                <span>失败文件 ({{ currentTask?.failureCount || 0 }})</span>
-              </div>
+            <el-card
+              v-if="currentTask?.results?.some((r: any) => !r.success)"
+              class="mt-4"
+              shadow="never"
+              :body-style="{ padding: '8px', backgroundColor: 'var(--el-color-danger-light-9)' }"
+            >
+              <template #header>
+                <div class="flex items-center gap-2 text-danger">
+                  <el-icon color="#f56c6c"><CircleCloseFilled /></el-icon>
+                  <span>失败文件 ({{ currentTask?.failureCount || 0 }})</span>
+                </div>
+              </template>
               <div class="result-file-list">
                 <div
                   v-for="result in currentTask.results.filter((r: any) => !r.success)"
                   :key="result.originalFilename"
-                  class="result-file-item result-file-failed"
+                  class="flex items-center gap-2 p-1 rounded mb-1 result-file-failed"
                 >
                   <el-icon color="#f56c6c" :size="16"><CircleCloseFilled /></el-icon>
-                  <div class="failed-file-info">
-                    <span class="result-file-name" :title="result.originalFilename">
+                  <div class="flex-1 min-w-0 flex flex-col">
+                    <span class="text-sm truncate" :title="result.originalFilename">
                       {{ result.originalFilename }}
                     </span>
                     <el-tooltip
@@ -286,19 +314,19 @@
                       placement="top"
                       :show-after="500"
                     >
-                      <span class="failed-reason">
+                      <span class="text-xs text-danger cursor-help">
                         {{ formatErrorMessage(result.errorMessage) }}
                       </span>
                     </el-tooltip>
                   </div>
                 </div>
               </div>
-            </div>
+            </el-card>
           </div>
 
           <!-- 结果视图底部按钮 -->
           <template v-if="batchDialogView === 'result'" #footer>
-            <div class="dialog-footer">
+            <div class="text-center">
               <el-button type="primary" @click="finishBatchUpload">
                 <el-icon><CircleCheckFilled /></el-icon>
                 完成
@@ -309,8 +337,8 @@
       </el-card>
 
       <!-- 文档列表 -->
-      <el-card class="document-list-card">
-        <div class="document-list-header">
+      <el-card>
+        <div class="flex justify-between items-center mb-5">
           <h3>文档列表 (共 {{ total }} 个)</h3>
 <el-button
             type="primary"
@@ -359,6 +387,9 @@ import {
   ElTableColumn, 
   ElDialog,
   ElTooltip,
+  ElRow,
+  ElCol,
+  ElSpace,
   ElProgress,
   ElMessageBox,
 } from 'element-plus'
@@ -682,200 +713,104 @@ definePage({
 </script>
 
 <style scoped>
+/* 页面容器 */
 .document-page {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  box-sizing: border-box;
-  width: 100%;
-  overflow-x: hidden;
 }
 
 .login-prompt {
   margin-top: 100px;
 }
 
-.document-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-x: hidden;
+/* === 通用布局工具类（替代 Tailwind） === */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.gap-1\.5 { gap: 6px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-5 { gap: 20px; }
+.mt-4 { margin-top: 16px; }
+.mt-5 { margin-top: 20px; }
+.mb-3 { margin-bottom: 12px; }
+.mb-5 { margin-bottom: 20px; }
+.pt-4 { padding-top: 16px; }
+.px-1 { padding: 0 4px; }
+.p-1 { padding: 4px; }
+.p-2 { padding: 8px; }
+.text-sm { font-size: 14px; }
+.text-xs { font-size: 12px; }
+.text-base { font-size: 16px; }
+.text-xl { font-size: 20px; }
+.text-center { text-align: center; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.min-w-0 { min-width: 0; }
+.flex-1 { flex: 1; }
+.whitespace-nowrap { white-space: nowrap; }
+.text-gray { color: var(--el-text-color-secondary); }
+.text-success { color: var(--el-color-success); }
+.text-danger { color: var(--el-color-danger); }
+.font-medium { font-weight: 500; }
+.font-bold { font-weight: 600; }
+.m-0 { margin: 0; }
+.rounded { border-radius: 4px; }
+.min-h-8 { min-height: 32px; }
+.cursor-help { cursor: help; }
+
+/* 模拟 el-statistic 样式（未导入组件，需自定义） */
+.el-statistic {
+  text-align: center;
+}
+.el-statistic__content {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.el-statistic__title {
+  font-size: 14px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.5;
 }
 
-.health-card, .upload-card, .task-progress-card, .document-list-card {
-  margin-bottom: 20px;
-  overflow-x: hidden;
-}
-
-.health-status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.upload-section {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-/* 批量上传拖拽区域 */
-.batch-upload-zone {
-  flex: 1;
-  min-width: 300px;
-}
-
+/* 拖拽上传区域 */
 .upload-dropzone {
   border: 2px dashed var(--el-border-color);
-  border-radius: 8px;
-  padding: 32px 24px;
+  border-radius: var(--el-border-radius-base);
+  padding: 32px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
   background-color: var(--el-fill-color-light);
 }
 
-.upload-dropzone:hover {
-  border-color: var(--el-color-primary);
-  background-color: var(--el-fill-color);
-}
-
+.upload-dropzone:hover,
 .upload-dropzone.drag-over {
   border-color: var(--el-color-primary);
   background-color: var(--el-color-primary-light-9);
 }
 
-.dropzone-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: var(--el-text-color-regular);
-}
-
-.dropzone-title {
-  font-size: 16px;
-  font-weight: 500;
-  margin: 0;
-}
-
-.dropzone-hint {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  margin: 0;
-}
-
-/* 待上传文件列表 */
-.pending-file-list {
-  margin-top: 16px;
-}
-
-.file-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  padding: 0 4px;
-}
-
-.file-list-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-}
-
-.invalid-hint {
-  font-size: 13px;
-  color: var(--el-color-danger);
-}
-
-.file-items {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
+/* 文件列表项 */
 .file-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: var(--el-border-radius-small);
   background-color: var(--el-fill-color-light);
-  transition: background-color 0.2s ease;
-}
-
-.file-item:hover {
-  background-color: var(--el-fill-color);
 }
 
 .file-item.file-invalid {
   background-color: var(--el-color-danger-light-9);
 }
 
-.file-item.file-invalid:hover {
-  background-color: var(--el-color-danger-light-8);
-}
-
-.file-main {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-}
-
-.file-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-}
-
-.file-size {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  white-space: nowrap;
-}
-
-.uploading-icon {
-  color: var(--el-color-primary);
-  animation: rotating 2s linear infinite;
-}
-
-@keyframes rotating {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 操作按钮 */
-.file-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--el-border-color-lighter);
-}
-
-/* 弹窗进度视图 */
-.task-progress-view,
-.task-result-view {
-  padding: 20px 0;
-}
-
+/* 进度与结果视图 */
 .task-status-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  text-align: center;
   margin-bottom: 24px;
 }
 
@@ -883,269 +818,58 @@ definePage({
   font-size: 18px;
   font-weight: 500;
   color: var(--el-text-color-primary);
+  margin-top: 12px;
 }
 
 .task-status-subtitle {
   font-size: 14px;
   color: var(--el-text-color-secondary);
-}
-
-.rotating-icon {
-  animation: rotating 2s linear infinite;
-}
-
-.task-stats {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  margin-top: 20px;
-  padding: 16px;
-  background-color: var(--el-fill-color-light);
-  border-radius: 8px;
-}
-
-.task-stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+  margin-top: 8px;
 }
 
 .success-text {
   color: var(--el-color-success);
+  font-weight: 500;
 }
 
 .error-text {
   color: var(--el-color-danger);
-}
-
-.task-progress-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-/* 实时处理结果列表 */
-.realtime-results {
-  margin-top: 20px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.realtime-results-header {
-  padding: 10px 16px;
-  background-color: var(--el-fill-color-light);
-  font-size: 14px;
   font-weight: 500;
-  color: var(--el-text-color-primary);
-  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
+.rotating-icon,
+.loading-icon,
+.uploading-icon {
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 结果分区滚动 */
+.result-file-list,
 .realtime-results-list {
-  max-height: 200px;
+  max-height: 150px;
   overflow-y: auto;
-  padding: 8px;
 }
 
-.realtime-result-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.realtime-result-item:last-child {
-  margin-bottom: 0;
-}
-
+/* 成功/失败背景色 */
+.result-file-success,
 .result-success {
   background-color: var(--el-color-success-light-9);
 }
 
+.result-file-failed,
 .result-failed {
   background-color: var(--el-color-danger-light-9);
 }
 
-.result-file-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.result-file-name {
-  font-size: 13px;
-  color: var(--el-text-color-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-}
-
-/* 统计栏 */
-.task-stats-bar {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-top: 16px;
-  padding: 12px 16px;
-  background-color: var(--el-fill-color-light);
-  border-radius: 8px;
-}
-
-/* 结果视图中的成功/失败文件区域 */
-.success-files-section,
-.failed-files-section {
-  margin-top: 16px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-
-.success-section-header {
-  background-color: var(--el-color-success-light-9);
-  color: var(--el-color-success);
-}
-
-.failed-section-header {
-  background-color: var(--el-color-danger-light-9);
-  color: var(--el-color-danger);
-}
-
-.result-file-list {
-  max-height: 150px;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-.result-file-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  margin-bottom: 2px;
-}
-
-.result-file-success {
-  background-color: var(--el-color-success-light-9);
-}
-
-.result-file-failed {
-  background-color: var(--el-color-danger-light-9);
-}
-
-.failed-file-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.failed-reason {
-  font-size: 12px;
-  color: var(--el-color-danger);
-  cursor: help;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: center;
-}
-
-/* 任务进度 */
-.task-progress {
-  padding: 20px;
-}
-
-.task-info {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.document-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-/* 表格自适应宽度 */
-.document-list-card .el-table {
-  width: 100%;
-}
-
-/* 文档ID列在小屏幕时隐藏或缩短 */
-.document-list-card .el-table .el-table__body-wrapper {
-  overflow-x: auto;
-}
-
-/* 健康状态区域 */
-.health-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 32px;
-}
-
-.health-label {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-  white-space: nowrap;
-}
-
-.health-tag-container {
-  min-width: 60px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-}
-
-.health-loading {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-}
-
-.loading-icon {
-  animation: rotating 1.5s linear infinite;
-}
-
-/* 内容淡入淡出过渡，避免闪烁 */
+/* 过渡动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s;
 }
 
 .fade-enter-from,
