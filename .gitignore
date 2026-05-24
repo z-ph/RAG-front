@@ -28,3 +28,6 @@ typed-router.d.ts
 
 # Sisyphus run continuation files
 .sisyphus/
+tasks/person-b-task-record.md
+
+.sisyphus/
