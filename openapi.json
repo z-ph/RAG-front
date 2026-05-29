@@ -1,0 +1,1413 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "API Documentation",
+    "version" : "1.0"
+  },
+  "paths" : {
+    "/api/auth/login" : {
+      "post" : {
+        "summary" : "authenticateUser",
+        "description" : "authenticateUser",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "username" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "password" : {
+                    "type" : "string",
+                    "description" : ""
+                  }
+                },
+                "description" : ""
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "string",
+                      "description" : ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rag/ask" : {
+      "post" : {
+        "summary" : "使用 RAG 回答问题",
+        "description" : "使用 RAG 回答问题",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "question" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "conversationId" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "maxResults" : {
+                    "type" : "integer",
+                    "description" : ""
+                  }
+                },
+                "description" : "RAG 请求（包含问题）"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "答案及来源信息",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "description" : "答案及来源信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rag/ask/stream" : {
+      "post" : {
+        "summary" : "使用 RAG 流式回答问题（SSE）",
+        "description" : "使用 RAG 流式回答问题（SSE）",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "question" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "conversationId" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "maxResults" : {
+                    "type" : "integer",
+                    "description" : ""
+                  }
+                },
+                "description" : "RAG 请求（包含问题）"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "SSE 流",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "description" : "SSE 流"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rag/conversations/{conversationId}/cancel" : {
+      "post" : {
+        "summary" : "取消指定会话的进行中生成任务",
+        "description" : "取消指定会话的进行中生成任务",
+        "parameters" : [ {
+          "name" : "conversationId",
+          "in" : "path",
+          "description" : "会话 ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "取消结果",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "description" : "取消结果"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rag/conversations/{conversationId}" : {
+      "delete" : {
+        "summary" : "清空指定会话上下文",
+        "description" : "清空指定会话上下文",
+        "parameters" : [ {
+          "name" : "conversationId",
+          "in" : "path",
+          "description" : "会话ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "清理结果",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string",
+                  "description" : "清理结果"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rag/health" : {
+      "get" : {
+        "summary" : "健康检查接口",
+        "description" : "健康检查接口",
+        "responses" : {
+          "200" : {
+            "description" : "健康状态",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string",
+                  "description" : "健康状态"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/upload" : {
+      "post" : {
+        "summary" : "上传并处理文档（支持多格式文件）",
+        "description" : "上传并处理文档（支持多格式文件）",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "file" ],
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "description" : "文档文件",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "处理结果",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "description" : "处理结果"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/batch-upload/{taskId}" : {
+      "get" : {
+        "summary" : "获取批量上传任务状态",
+        "description" : "获取批量上传任务状态",
+        "parameters" : [ {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "任务ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "任务状态信息",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "taskId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "status" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "totalFiles" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "successCount" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "failureCount" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "results" : {
+                          "type" : "array",
+                          "description" : "",
+                          "items" : {
+                            "type" : "object",
+                            "properties" : {
+                              "uploadedFileId" : {
+                                "type" : "integer",
+                                "description" : "",
+                                "format" : "int64"
+                              },
+                              "documentId" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "originalFilename" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "filePath" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "success" : {
+                                "type" : "boolean",
+                                "description" : ""
+                              },
+                              "message" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "errorMessage" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "embeddingCount" : {
+                                "type" : "integer",
+                                "description" : ""
+                              },
+                              "segmentCount" : {
+                                "type" : "integer",
+                                "description" : ""
+                              },
+                              "status" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "textContent" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "metadata" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "key" : {
+                                    "type" : "object",
+                                    "properties" : { }
+                                  }
+                                },
+                                "description" : ""
+                              }
+                            },
+                            "description" : "com.mark.knowledge.rag.dto.ProcessedFileDTO"
+                          }
+                        },
+                        "errorMessage" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "createdTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "completedTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        }
+                      },
+                      "description" : ""
+                    }
+                  },
+                  "description" : "任务状态信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/batch-upload/recovery/trigger" : {
+      "post" : {
+        "summary" : "手动触发一次未完成批量任务恢复。",
+        "description" : "手动触发一次未完成批量任务恢复。",
+        "responses" : {
+          "200" : {
+            "description" : "本次触发的任务数量",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "key" : {
+                          "type" : "object",
+                          "properties" : { }
+                        }
+                      },
+                      "description" : ""
+                    }
+                  },
+                  "description" : "本次触发的任务数量"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/batch-upload" : {
+      "post" : {
+        "summary" : "批量上传文档接口（支持多格式文件，最多50个文件）",
+        "description" : "批量上传文档接口（支持多格式文件，最多50个文件）",
+        "parameters" : [ {
+          "name" : "knowledgeBase",
+          "in" : "query",
+          "description" : "知识库标识",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "category",
+          "in" : "query",
+          "description" : "文档分类",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "tags",
+          "in" : "query",
+          "description" : "标签信息（逗号分隔）",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "files" ],
+                "type" : "object",
+                "properties" : {
+                  "files" : {
+                    "type" : "string",
+                    "description" : "文件列表",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "批量上传任务信息",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "taskId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "status" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "totalFiles" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "successCount" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "failureCount" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "results" : {
+                          "type" : "array",
+                          "description" : "",
+                          "items" : {
+                            "type" : "object",
+                            "properties" : {
+                              "uploadedFileId" : {
+                                "type" : "integer",
+                                "description" : "",
+                                "format" : "int64"
+                              },
+                              "documentId" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "originalFilename" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "filePath" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "success" : {
+                                "type" : "boolean",
+                                "description" : ""
+                              },
+                              "message" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "errorMessage" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "embeddingCount" : {
+                                "type" : "integer",
+                                "description" : ""
+                              },
+                              "segmentCount" : {
+                                "type" : "integer",
+                                "description" : ""
+                              },
+                              "status" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "textContent" : {
+                                "type" : "string",
+                                "description" : ""
+                              },
+                              "metadata" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "key" : {
+                                    "type" : "object",
+                                    "properties" : { }
+                                  }
+                                },
+                                "description" : ""
+                              }
+                            },
+                            "description" : "com.mark.knowledge.rag.dto.ProcessedFileDTO"
+                          }
+                        },
+                        "errorMessage" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "createdTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "completedTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        }
+                      },
+                      "description" : ""
+                    }
+                  },
+                  "description" : "批量上传任务信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents" : {
+      "get" : {
+        "summary" : "查看已上传文档列表",
+        "description" : "查看已上传文档列表",
+        "responses" : {
+          "200" : {
+            "description" : "文档列表",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "description" : "文档列表"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/{documentId}/download" : {
+      "get" : {
+        "summary" : "下载指定文档原始文件。",
+        "description" : "下载指定文档原始文件。",
+        "parameters" : [ {
+          "name" : "documentId",
+          "in" : "path",
+          "description" : "文档ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "原始文件下载响应",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "description" : "原始文件下载响应"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/{documentId}" : {
+      "delete" : {
+        "summary" : "删除指定文档",
+        "description" : "删除指定文档",
+        "parameters" : [ {
+          "name" : "documentId",
+          "in" : "path",
+          "description" : "文档ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "删除结果",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "description" : "删除结果"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/health" : {
+      "get" : {
+        "summary" : "健康检查接口",
+        "description" : "健康检查接口",
+        "responses" : {
+          "200" : {
+            "description" : "健康状态",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string",
+                  "description" : "健康状态"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/batch-upload/chunked/init" : {
+      "post" : {
+        "summary" : "初始化分段上传会话。",
+        "description" : "初始化分段上传会话。",
+        "parameters" : [ {
+          "name" : "filename",
+          "in" : "query",
+          "description" : "原始文件名",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "totalChunks",
+          "in" : "query",
+          "description" : "总分片数",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "nullable" : false
+          }
+        }, {
+          "name" : "totalSize",
+          "in" : "query",
+          "description" : "文件总大小",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "nullable" : false
+          }
+        }, {
+          "name" : "knowledgeBase",
+          "in" : "query",
+          "description" : "知识库标识",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "category",
+          "in" : "query",
+          "description" : "文档分类",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "tags",
+          "in" : "query",
+          "description" : "标签列表",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "分段上传会话状态",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "uploadSessionId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "taskId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "originalFilename" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "totalChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "receivedChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "totalSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "uploadedSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "status" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "knowledgeBase" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "category" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "errorMessage" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "createdTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "completedTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        }
+                      },
+                      "description" : ""
+                    }
+                  },
+                  "description" : "分段上传会话状态"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/batch-upload/chunked/part" : {
+      "post" : {
+        "summary" : "上传单个分段文件。",
+        "description" : "上传单个分段文件。",
+        "parameters" : [ {
+          "name" : "uploadSessionId",
+          "in" : "query",
+          "description" : "上传会话ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "chunkIndex",
+          "in" : "query",
+          "description" : "分片序号",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "nullable" : false
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "file" ],
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "description" : "分片文件",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "最新会话状态",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "uploadSessionId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "taskId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "originalFilename" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "totalChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "receivedChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "totalSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "uploadedSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "status" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "knowledgeBase" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "category" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "errorMessage" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "createdTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "completedTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        }
+                      },
+                      "description" : ""
+                    }
+                  },
+                  "description" : "最新会话状态"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/batch-upload/chunked/complete" : {
+      "post" : {
+        "summary" : "完成分段上传并接入异步处理。",
+        "description" : "完成分段上传并接入异步处理。",
+        "parameters" : [ {
+          "name" : "uploadSessionId",
+          "in" : "query",
+          "description" : "上传会话ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "最新会话状态",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "uploadSessionId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "taskId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "originalFilename" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "totalChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "receivedChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "totalSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "uploadedSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "status" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "knowledgeBase" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "category" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "errorMessage" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "createdTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "completedTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        }
+                      },
+                      "description" : ""
+                    }
+                  },
+                  "description" : "最新会话状态"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/batch-upload/chunked/{uploadSessionId}" : {
+      "get" : {
+        "summary" : "查询分段上传会话状态。",
+        "description" : "查询分段上传会话状态。",
+        "parameters" : [ {
+          "name" : "uploadSessionId",
+          "in" : "path",
+          "description" : "上传会话ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "会话状态",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "msg" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "uploadSessionId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "taskId" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "originalFilename" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "totalChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "receivedChunks" : {
+                          "type" : "integer",
+                          "description" : ""
+                        },
+                        "totalSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "uploadedSize" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        },
+                        "status" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "knowledgeBase" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "category" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "errorMessage" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "createdTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "completedTime" : {
+                          "type" : "string",
+                          "description" : ""
+                        }
+                      },
+                      "description" : ""
+                    }
+                  },
+                  "description" : "会话状态"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "com.mark.knowledge.rag.dto.ProcessedFileDTO" : {
+        "type" : "object",
+        "properties" : {
+          "uploadedFileId" : {
+            "type" : "integer",
+            "description" : "",
+            "format" : "int64"
+          },
+          "documentId" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "originalFilename" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "filePath" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "success" : {
+            "type" : "boolean",
+            "description" : ""
+          },
+          "message" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "errorMessage" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "embeddingCount" : {
+            "type" : "integer",
+            "description" : ""
+          },
+          "segmentCount" : {
+            "type" : "integer",
+            "description" : ""
+          },
+          "status" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "textContent" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "metadata" : {
+            "type" : "object",
+            "properties" : {
+              "key" : {
+                "type" : "object",
+                "properties" : { }
+              }
+            },
+            "description" : ""
+          }
+        },
+        "description" : "com.mark.knowledge.rag.dto.ProcessedFileDTO"
+      },
+      "com.mark.knowledge.rag.dto.BatchUploadTaskStatusDTO" : {
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "status" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "totalFiles" : {
+            "type" : "integer",
+            "description" : ""
+          },
+          "successCount" : {
+            "type" : "integer",
+            "description" : ""
+          },
+          "failureCount" : {
+            "type" : "integer",
+            "description" : ""
+          },
+          "results" : {
+            "type" : "array",
+            "description" : "",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "uploadedFileId" : {
+                  "type" : "integer",
+                  "description" : "",
+                  "format" : "int64"
+                },
+                "documentId" : {
+                  "type" : "string",
+                  "description" : ""
+                },
+                "originalFilename" : {
+                  "type" : "string",
+                  "description" : ""
+                },
+                "filePath" : {
+                  "type" : "string",
+                  "description" : ""
+                },
+                "success" : {
+                  "type" : "boolean",
+                  "description" : ""
+                },
+                "message" : {
+                  "type" : "string",
+                  "description" : ""
+                },
+                "errorMessage" : {
+                  "type" : "string",
+                  "description" : ""
+                },
+                "embeddingCount" : {
+                  "type" : "integer",
+                  "description" : ""
+                },
+                "segmentCount" : {
+                  "type" : "integer",
+                  "description" : ""
+                },
+                "status" : {
+                  "type" : "string",
+                  "description" : ""
+                },
+                "textContent" : {
+                  "type" : "string",
+                  "description" : ""
+                },
+                "metadata" : {
+                  "type" : "object",
+                  "properties" : {
+                    "key" : {
+                      "type" : "object",
+                      "properties" : { }
+                    }
+                  },
+                  "description" : ""
+                }
+              },
+              "description" : "com.mark.knowledge.rag.dto.ProcessedFileDTO"
+            }
+          },
+          "errorMessage" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "createdTime" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "completedTime" : {
+            "type" : "string",
+            "description" : ""
+          }
+        },
+        "description" : ""
+      },
+      "分段上传会话状态返回对象。" : {
+        "type" : "object",
+        "properties" : {
+          "uploadSessionId" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "taskId" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "originalFilename" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "totalChunks" : {
+            "type" : "integer",
+            "description" : ""
+          },
+          "receivedChunks" : {
+            "type" : "integer",
+            "description" : ""
+          },
+          "totalSize" : {
+            "type" : "integer",
+            "description" : "",
+            "format" : "int64"
+          },
+          "uploadedSize" : {
+            "type" : "integer",
+            "description" : "",
+            "format" : "int64"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "knowledgeBase" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "category" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "errorMessage" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "createdTime" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "completedTime" : {
+            "type" : "string",
+            "description" : ""
+          }
+        },
+        "description" : ""
+      }
+    }
+  }
+}
